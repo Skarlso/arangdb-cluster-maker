@@ -52,7 +52,17 @@ run kind get kubeconfig-path --name="kind" to setup your local shell for the clu
 ## Can call creation individually if desired
 
 ```
-$ python cluster.py create-cluster
+$ python cluster.py create-cluster --config multi_node_setup.yaml
+```
+
+```
+$ python cluster.py create_arango_deployment --version master --storage --replication
+```
+
+## Deploy the DB
+
+```
+python cluster.py add-db --config arangodb/single-server.yaml
 ```
 
 # Accessing the database
