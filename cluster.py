@@ -59,7 +59,7 @@ def group():
 @click.option('--replication', is_flag=False, help='Create ArangoDeploymentReplication.')
 def wizard(version, config, storage, replication):
     print('Creating cluster and deploying arango deployments.')
-    # create_cluster_func(config)
+    create_cluster_func(config)
     print('exporting cluster settings')
     config_path = check_output(f'{kind} get kubeconfig-path --name="kind"', shell=True)
     config_path = config_path.decode(sys.stdout.encoding).strip()
@@ -72,13 +72,15 @@ def wizard(version, config, storage, replication):
 
 
 @group.command()
+@click.option('--version', default='master', help='The version to deploy.')
 @click.option('--storage', is_flag=False, help='Create persistent storage')
 @click.option('--replication', is_flag=False, help='Create ArangoDeploymentReplication')
-def create_arango_deployment(storage, replication):
-    create_arango_deployment_func(storage, replication)
+def create_arango_deployment(version, storage, replication):
+    create_arango_deployment_func(version, storage, replication)
 
 
 @group.command()
+@click.option('--config', default='kind_cluster.yaml', help='The name of the configuration file to use.')
 def create_cluster(config):
     create_cluster_func(config)
 
@@ -101,14 +103,14 @@ cli = click.CommandCollection(sources=[group])
 
 if __name__ == '__main__':
     swag = """
- _______  _______  _______  _        _______  _______  ______   ______     _______  _                 _______ _________ _______  _______ 
+ _______  _______  _______  _        _______  _______  ______   ______     _______  _                 _______ _________ _______  _______
 (  ___  )(  ____ )(  ___  )( (    /|(  ____ \(  ___  )(  __  \ (  ___ \   (  ____ \( \      |\     /|(  ____ \\__   __/(  ____ \(  ____ )
 | (   ) || (    )|| (   ) ||  \  ( || (    \/| (   ) || (  \  )| (   ) )  | (    \/| (      | )   ( || (    \/   ) (   | (    \/| (    )|
 | (___) || (____)|| (___) ||   \ | || |      | |   | || |   ) || (__/ /   | |      | |      | |   | || (_____    | |   | (__    | (____)|
 |  ___  ||     __)|  ___  || (\ \) || | ____ | |   | || |   | ||  __ (    | |      | |      | |   | |(_____  )   | |   |  __)   |     __)
-| (   ) || (\ (   | (   ) || | \   || | \_  )| |   | || |   ) || (  \ \   | |      | |      | |   | |      ) |   | |   | (      | (\ (   
+| (   ) || (\ (   | (   ) || | \   || | \_  )| |   | || |   ) || (  \ \   | |      | |      | |   | |      ) |   | |   | (      | (\ (
 | )   ( || ) \ \__| )   ( || )  \  || (___) || (___) || (__/  )| )___) )  | (____/\| (____/\| (___) |/\____) |   | |   | (____/\| ) \ \__
-|/     \||/   \__/|/     \||/    )_)(_______)(_______)(______/ |/ \___/   (_______/(_______/(_______)\_______)   )_(   (_______/|/   \__/    
+|/     \||/   \__/|/     \||/    )_)(_______)(_______)(______/ |/ \___/   (_______/(_______/(_______)\_______)   )_(   (_______/|/   \__/
     """
     print(swag)
 
