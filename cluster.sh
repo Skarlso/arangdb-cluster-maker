@@ -2,7 +2,6 @@
 
 
 # Default values of arguments
-COUNT=1
 VERSION="master"
 CONFIG="master-cluster.yaml"
 STORAGE=0
@@ -85,10 +84,6 @@ do
         -o=*|--config=*)
         CONFIG="${arg#*=}"
         shift # config --config= the config file to use to create the cluster
-        ;;
-        -c=*|--count=*)
-        COUNT="${arg#*=}"
-        shift # version --version= to define what version to deploy
         ;;
         create-cluster)
         create-cluster
