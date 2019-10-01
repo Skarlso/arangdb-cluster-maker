@@ -7,7 +7,7 @@ CONFIG="master-cluster.yaml"
 STORAGE=0
 REPLICATION=0
 
-create-cluster() {
+create_cluster() {
     echo "Creating cluster"
     kind create cluster --config ${CONFIG}
     if [ $? != 0 ]; then
@@ -17,7 +17,7 @@ create-cluster() {
     export KUBECONFIG="$(kind get kubeconfig-path)"
 }
 
-delete-cluster() {
+delete_cluster() {
     echo "Delete cluster"
     kind delete cluster
     if [ $? != 0 ]; then
@@ -26,7 +26,7 @@ delete-cluster() {
     fi
 }
 
-create-arango-deployment() {
+create_arango_deployment() {
     echo "Creating deployment"
     kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-crd.yaml
     kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-deployment.yaml
@@ -36,6 +36,37 @@ create-arango-deployment() {
     if [ $REPLICATION -eq 1 ]; then
         kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-deployment-replication.yaml
     fi
+    wait_for_cluster
+}
+
+spin()
+{
+    spinner="/|\\-/|\\-"
+    while :
+    do
+        for i in `seq 0 7`
+        do
+            echo -e "\r[${spinner:$i:1}] Waiting for deployment to finish..."
+            echo -en "\033[1A"
+            sleep 1
+        done
+    done
+}
+
+wait_for_cluster() {
+    spin &
+    SPIN_PID=$!
+    trap "kill -9 $SPIN_PID && exit 0" `seq 0 15`
+    while :
+    do
+        output=$(kubectl get pods --field-selector=status.phase=Running -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | uniq)
+        if [ "${output}" == "Running" ]; then
+            echo -e "\ncluster finished deployment"
+            kill -9 $SPIN_PID
+            exit 0
+        fi
+        sleep 0.5
+    done
 }
 
 wizard() {
@@ -86,13 +117,13 @@ do
         shift # config --config= the config file to use to create the cluster
         ;;
         create-cluster)
-        create-cluster
+        create_cluster
         ;;
         delete-cluster)
-        delete-cluster
+        delete_cluster
         ;;
         deploy)
-        create-arango-deployment
+        create_arango_deployment
         ;;
         wizard)
         wizard
