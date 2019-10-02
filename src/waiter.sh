@@ -31,4 +31,5 @@ wait_for_deployment() {
 
 wait_for_deployment_ready_state() {
     # TODO: Implement complex search for cluster deployment ready state.
+    echo "TODO"
 }
