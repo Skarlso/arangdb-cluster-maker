@@ -3,9 +3,10 @@
 
 # Default values of arguments
 VERSION="master"
-CONFIG="master-cluster.yaml"
+CONFIG="master_cluster.yaml"
 STORAGE=0
 REPLICATION=0
+MANIFESTS=""
 
 create_cluster() {
     echo "Creating cluster"
@@ -27,52 +28,54 @@ delete_cluster() {
 }
 
 create_arango_deployment() {
-    echo "Creating deployment"
-    kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-crd.yaml
-    kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-deployment.yaml
-    if [ $STORAGE -eq 1 ]; then
-        kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-storage.yaml
-    fi
-    if [ $REPLICATION -eq 1 ]; then
-        kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-deployment-replication.yaml
-    fi
-    wait_for_cluster
-}
 
-spin()
-{
-    spinner="/|\\-/|\\-"
-    while :
-    do
-        for i in `seq 0 7`
-        do
-            echo -e "\r[${spinner:$i:1}] Waiting for deployment to finish..."
-            echo -en "\033[1A"
-            sleep 1
-        done
-    done
-}
-
-wait_for_cluster() {
-    spin &
-    SPIN_PID=$!
-    trap "kill -9 $SPIN_PID && exit 0" `seq 0 15`
-    while :
-    do
-        output=$(kubectl get pods --field-selector=status.phase=Running -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | uniq)
-        if [ "${output}" == "Running" ]; then
-            echo -e "\ncluster finished deployment"
-            kill -9 $SPIN_PID
-            exit 0
+    if [[ ! -z "${MANIFESTS}" ]]; then
+        echo "Using manifest folder to apply configuration files."
+        kubectl apply -f "${MANIFESTS}"
+    else
+        echo "Creating deployment from upstream with version ${VERSION}"
+        kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-crd.yaml
+        kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-deployment.yaml
+        if [ $STORAGE -eq 1 ]; then
+            kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-storage.yaml
         fi
-        sleep 0.5
+        if [ $REPLICATION -eq 1 ]; then
+            kubectl apply -f https://raw.githubusercontent.com/arangodb/kube-arangodb/${VERSION}/manifests/arango-deployment-replication.yaml
+        fi
+    fi
+    wait_for_deployment "app.kubernetes.io/name=kube-arangodb"
+}
+
+test_deployment() {
+    echo "Running tests."
+    # TODO: Need a way to run individual tests.
+    # --run=TestBla* ?
+    for dir in ./tests/*/
+    do
+        dir=${dir%*/}
+        if [[ $dir == *"ignore_"* ]]; then
+            continue
+        fi
+        (
+            echo -e "Running test under \033[1m${dir}\033[0m"
+            cd $dir
+            source test.sh
+            if [[ $? -ne 0 ]]; then
+                echo -e "Test \033[1m\033[02;91mFailed!\033[0m"
+                exit 1
+            fi
+            echo -e "Test \033[1m\033[02;92mPassed!\033[0m"
+        )
     done
+
 }
 
 wizard() {
     create-cluster
     create-arango-deployment
 }
+
+source src/waiter.sh
 
 echo "
  _______  _______  _______  _        _______  _______  ______   ______     _______  _                 _______ _________ _______  _______
@@ -116,6 +119,10 @@ do
         CONFIG="${arg#*=}"
         shift # config --config= the config file to use to create the cluster
         ;;
+        -m=*|--manifests=*)
+        MANIFESTS="${arg#*=}"
+        shift # manifests --manifests= setup a folder from where to apply arango manifest files
+        ;;
         create-cluster)
         create_cluster
         ;;
@@ -127,6 +134,9 @@ do
         ;;
         wizard)
         wizard
+        ;;
+        test)
+        test_deployment
         ;;
         *)
         OTHER_ARGUMENTS+=("$1")
