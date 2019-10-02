@@ -1,5 +1,8 @@
 # Cluster
 
+Before you begin, of using Docker toolbox, make sure that the virtual machine used by it, has at least 8GB ram and
+2 cores. Otherwise the deployment will fail and eat up the docker client.
+
 ## Examples
 
 Example:
