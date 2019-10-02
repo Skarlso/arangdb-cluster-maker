@@ -12,13 +12,22 @@ spin()
     done
 }
 
+kill_spinner() {
+    pid=$1
+    if ps -p $pid > /dev/null; then
+        kill -9 $pid > /dev/null
+    fi
+    exit 0
+}
+
 # This should not used for tests where there are more complex deployments
 # and we need to wait for a ready state 1/1.
 wait_for_deployment() {
     selector=$1
     spin &
     SPIN_PID=$!
-    trap "ps a | awk '{print $1}' | grep -q "${SPIN_PID}" && kill -9 $SPIN_PID || exit 0" `seq 0 15`
+
+    trap "kill_spinner ${SPIN_PID}" `seq 0 15`
     while :
     do
         output=$(kubectl get pods --field-selector=status.phase=Running --selector=${selector} -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | uniq)
