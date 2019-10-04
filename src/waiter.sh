@@ -47,12 +47,12 @@ wait_for_deployment_ready_state() {
     SPIN_PID=$!
 
     trap "kill_spinner ${SPIN_PID}" `seq 0 15`
-    # TODO: Implement complex search for cluster deployment ready state.
+
     JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
     while :
     do
         kubectl get arangodeployment/${name} -o=jsonpath='{range .status.members.agents[*]}{.phase}' | grep -v "Created"
-        if [[  $? -eq 0 ]]; then
+        if [[  $? -eq 1 ]]; then
             echo "All pods are in Ready 1/1 state."
             kill -9 $SPIN_PID
             break
@@ -60,7 +60,23 @@ wait_for_deployment_ready_state() {
     done
 }
 
-wait_for_arango_deployment() {
+wait_for_cluster_deployment() {
     name=$1
+    count=$2
 
+    spin &
+    SPIN_PID=$!
+
+    trap "kill_spinner ${SPIN_PID}" `seq 0 15`
+
+    while :
+    do
+        # TODO: Also check for status Ready because Running != Ready.
+        num=$(kubectl get pods -o name | grep ${name} | xargs -I{} kubectl get {} -o=jsonpath='{.status.phase}{"\n"}' | grep Running | wc -l | xargs)
+        if [[  $num -eq $count ]]; then
+            echo "All pods are in Ready 1/1 state."
+            kill -9 $SPIN_PID
+            break
+        fi
+    done
 }

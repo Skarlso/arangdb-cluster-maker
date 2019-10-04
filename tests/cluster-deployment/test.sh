@@ -11,16 +11,24 @@ if [[ $? -ne 0 ]]; then
     echo "Failed to apply config file"
     return 1
 fi
-wait_for_deployment_ready_state "arango_deployment=cluster-server"
+# Wait for 9 pods to be in Ready state starting with the name cluster-server
+wait_for_cluster_deployment "cluster-server" 9
 
 # Test
 
-# get exposed port and ip
-# do a curl
-# do basic auth
+kubectl port-forward service/cluster-server 8529 &
+PID=$!
 
-# If something fails... exit 1
+status=$(curl --insecure -s -o /dev/null -I -w "%{http_code}" https://127.0.0.1:8529)
+ret=0
+if [[ $status -ne 200 ]]; then
+    $ret=1
+fi
 
+# Killing the port-forward
+kill -9 $PID
+
+# Cleanup
 kubectl delete -f cluster-server.yaml
 
-return 0
+return $ret

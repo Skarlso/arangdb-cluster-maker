@@ -55,5 +55,12 @@ Then in the browser: https://127.0.0.1:8529
 
 Note, http will not work!
 
-# Bash version
+# Waiters
 
+If this has value:
+
+```
+kubectl get arangodeployment/cluster-server -o=jsonpath='{range .status.members.agents[*]}{.conditions}{"\n"}{end}'
+```
+
+That means that the objects are created and the pods are initializing. Now we need to wait for the pods to be Phase Ready.
