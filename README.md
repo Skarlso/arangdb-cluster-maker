@@ -49,6 +49,8 @@ Ignoring tests is as easy as prefixing a folder with `ignore_`.
 k port-forward service/single-server-ea 8529
 ```
 
+This is needed because it's much less problematic to ping this then dealing with docker and ip addresses.
+
 Then in the browser: https://127.0.0.1:8529
 
 Note, http will not work!
