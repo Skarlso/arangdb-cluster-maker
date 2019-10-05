@@ -22,7 +22,7 @@ PID=$!
 status=$(curl --insecure -s -o /dev/null -I -w "%{http_code}" https://127.0.0.1:8529)
 ret=0
 if [[ $status -ne 200 ]]; then
-    $ret=1
+    ret=1
 fi
 
 # Killing the port-forward
