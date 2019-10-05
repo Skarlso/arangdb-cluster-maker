@@ -64,3 +64,43 @@ kubectl get arangodeployment/cluster-server -o=jsonpath='{range .status.members.
 ```
 
 That means that the objects are created and the pods are initializing. Now we need to wait for the pods to be Phase Ready.
+
+`kubectl get pods -o name | grep cluster-server`
+
+# Test
+
+First passing test:
+
+```
+ $ ./cluster.sh test
+
+ _______  _______  _______  _        _______  _______  ______   ______     _______  _                 _______ _________ _______  _______
+(  ___  )(  ____ )(  ___  )( (    /|(  ____ \(  ___  )(  __  \ (  ___ \   (  ____ \( \      |\     /|(  ____ \__   __/(  ____ \(  ____ )
+| (   ) || (    )|| (   ) ||  \  ( || (    \/| (   ) || (  \  )| (   ) )  | (    \/| (      | )   ( || (    \/   ) (   | (    \/| (    )|
+| (___) || (____)|| (___) ||   \ | || |      | |   | || |   ) || (__/ /   | |      | |      | |   | || (_____    | |   | (__    | (____)|
+|  ___  ||     __)|  ___  || (\ \) || | ____ | |   | || |   | ||  __ (    | |      | |      | |   | |(_____  )   | |   |  __)   |     __)
+| (   ) || (\ (   | (   ) || | \   || | \_  )| |   | || |   ) || (  \ \   | |      | |      | |   | |      ) |   | |   | (      | (\ (
+| )   ( || ) \ \__| )   ( || )  \  || (___) || (___) || (__/  )| )___) )  | (____/\| (____/\| (___) |/\____) |   | |   | (____/\| ) \ \__
+|/     \||/   \__/|/     \||/    )_)(_______)(_______)(______/ |/ \___/   (_______/(_______/(_______)\_______)   )_(   (_______/|/   \__/
+
+Running tests.
+Running test under ./tests/cluster-deployment
+Setting up db for testing...
+arangodeployment.database.arangodb.com/cluster-server created
+Waiting for name: cluster-server and pod count: 9
+Error from server (NotFound): pods "cluster-server-crdn-hrilbu19-20ce4e" not found
+Error from server (NotFound): pods "cluster-server-crdn-3oit0n1c-20ce4e" not found
+Error from server (NotFound): pods "cluster-server-id-b026ee" not found
+All pods are in Ready 1/1 state.nish...
+Forwarding port...
+PID for port-forward: 74781
+Forwarding from 127.0.0.1:8529 -> 8529
+Forwarding from [::1]:8529 -> 8529
+Performing CURL
+Handling connection for 8529
+Return status of curl is: 200
+arangodeployment.database.arangodb.com "cluster-server" deleted
+Test Passed!
+```
+
+For cluster deployment.

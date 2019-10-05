@@ -63,7 +63,7 @@ wait_for_deployment_ready_state() {
 wait_for_cluster_deployment() {
     name=$1
     count=$2
-
+    echo "Waiting for name: ${name} and pod count: ${count}"
     spin &
     SPIN_PID=$!
 
