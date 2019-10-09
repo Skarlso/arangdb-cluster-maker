@@ -7,6 +7,7 @@ CONFIG="master_cluster.yaml"
 STORAGE=0
 REPLICATION=0
 MANIFESTS=""
+TEST_NAME=""
 
 create_cluster() {
     echo "Creating cluster"
@@ -48,16 +49,13 @@ create_arango_deployment() {
 
 test_deployment() {
     echo "Running tests."
-    # TODO: Need a way to run individual tests.
-    # --run=TestBla* ?
-    for dir in ./tests/*/
-    do
-        dir=${dir%*/}
-        if [[ $dir == *"ignore_"* ]]; then
-            continue
+    if [[ ! -z "${TEST_NAME}" ]]; then
+        dir="./tests/${TEST_NAME}"
+        if [[ ! -d "${dir}" ]]; then
+            echo "Test with name ${TEST_NAME} does not exist."
+            exit 1
         fi
         (
-            echo -e "Running test under \033[1m${dir}\033[0m"
             cd $dir
             source test.sh
             if [[ $? -ne 0 ]]; then
@@ -65,9 +63,27 @@ test_deployment() {
                 exit 1
             fi
             echo -e "Test \033[1m\033[02;92mPassed!\033[0m"
+            exit 0
         )
-    done
-
+    else
+        for dir in ./tests/*/
+        do
+            dir=${dir%*/}
+            if [[ $dir == *"ignore_"* ]]; then
+                continue
+            fi
+            (
+                echo -e "Running test under \033[1m${dir}\033[0m"
+                cd $dir
+                source test.sh
+                if [[ $? -ne 0 ]]; then
+                    echo -e "Test \033[1m\033[02;91mFailed!\033[0m"
+                    exit 1
+                fi
+                echo -e "Test \033[1m\033[02;92mPassed!\033[0m"
+            )
+        done
+    fi
 }
 
 wizard() {
@@ -122,6 +138,10 @@ do
         -m=*|--manifests=*)
         MANIFESTS="${arg#*=}"
         shift # manifests --manifests= setup a folder from where to apply arango manifest files
+        ;;
+        -t=*|--test-name=*)
+        TEST_NAME="${arg#*=}"
+        shift # test name --test-name= run a single test with folder name x
         ;;
         create-cluster)
         create_cluster

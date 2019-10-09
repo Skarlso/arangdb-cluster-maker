@@ -104,3 +104,9 @@ Test Passed!
 ```
 
 For cluster deployment.
+
+Running a single test case:
+
+```
+./cluster.sh -t=single-server test
+```

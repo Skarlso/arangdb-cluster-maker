@@ -48,15 +48,15 @@ wait_for_deployment_ready_state() {
 
     trap "kill_spinner ${SPIN_PID}" `seq 0 15`
 
-    JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
     while :
     do
-        kubectl get arangodeployment/${name} -o=jsonpath='{range .status.members.agents[*]}{.phase}' | grep -v "Created"
-        if [[  $? -eq 1 ]]; then
+        kubectl get arangodeployment/${name} -o=jsonpath='{range .status.members.single[*]}{.phase}' | grep "Created"
+        if [[  $? -eq 0 ]]; then
             echo "All pods are in Ready 1/1 state."
             kill -9 $SPIN_PID
             break
         fi
+        sleep 1
     done
 }
 
@@ -78,5 +78,6 @@ wait_for_cluster_deployment() {
             kill -9 $SPIN_PID
             break
         fi
+        sleep 1
     done
 }
