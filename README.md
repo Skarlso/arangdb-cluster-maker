@@ -110,3 +110,7 @@ Running a single test case:
 ```
 ./cluster.sh -t=single-server test
 ```
+
+# TODOS
+
+Just parse for `1/1` with awk. To be precise `x/x`.
