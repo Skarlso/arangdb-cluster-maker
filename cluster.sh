@@ -16,7 +16,7 @@ create_cluster() {
         echo "Error when creating cluster..."
         exit $?
     fi
-    export KUBECONFIG="$(kind get kubeconfig-path)"
+    kubectl cluster-info --context kind-kind
 }
 
 delete_cluster() {

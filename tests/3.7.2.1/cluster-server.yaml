@@ -1,7 +1,8 @@
-apiVersion: "database.arangodb.com/v1alpha"
+apiVersion: "database.arangodb.com/v1"
 kind: "ArangoDeployment"
 metadata:
   name: "cluster-server"
 spec:
   mode: Cluster
   image: "arangodb/arangodb:3.7.2.1"
+  environment: Production
