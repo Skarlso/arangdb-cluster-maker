@@ -87,8 +87,8 @@ test_deployment() {
 }
 
 wizard() {
-    create-cluster
-    create-arango-deployment
+    create_cluster
+    create_arango_deployment
 }
 
 source src/waiter.sh
